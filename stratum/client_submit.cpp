@@ -136,7 +136,6 @@ int VerifyCycle(std::string hashStr, uint8_t edgeBits, uint8_t proofSize, const 
 	return n == proofSize ? POW_OK : POW_SHORT_CYCLE;
 }
 
-bool cycleisokay = false;
 void build_submit_values(YAAMP_JOB_VALUES *submitvalues, YAAMP_JOB_TEMPLATE *templ,
 	const char *nonce1, const char *nonce2, const char *ntime, const char *nonce, const char *cycles)
 {
@@ -222,7 +221,7 @@ void build_submit_values(YAAMP_JOB_VALUES *submitvalues, YAAMP_JOB_TEMPLATE *tem
 	hexlify(submitvalues->hash_hex, submitvalues->hash_bin, 32);
 	string_be(submitvalues->hash_hex, submitvalues->hash_be);
 	
-	cycleisokay = VerifyCycle(submitvalues->hash_be, 27 /*edgebits 27 16*/, 42, cycle) == POW_OK;
+	submitvalues->cycleisokay = VerifyCycle(submitvalues->hash_be, 27 /*edgebits 27 16*/, 42, cycle) == POW_OK;
 
 	sprintf(allcycles_be2, "2a%s", (char*)allcycles_be);
 	binlify(allcycles_bin, allcycles_be2);	
@@ -682,7 +681,7 @@ bool client_submit(YAAMP_CLIENT *client, json_value *json_params)
 		lyra2z_height = templ->height;
 	}
 
-	if (!cycleisokay) {
+	if (!submitvalues.cycleisokay) {
 		if (g_debuglog_hash) {
 			debuglog("Possible %s error, hash starts with %02x%02x%02x%02x\n", g_current_algo->name,
 				(int)submitvalues.hash_bin[31], (int)submitvalues.hash_bin[30],
